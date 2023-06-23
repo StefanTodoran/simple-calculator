@@ -33,10 +33,11 @@
       const isNumber = /^[0-9]$/i.test(event.key);
 
       if (isOperation || isNumber) calculatorInput.focus();
+      if (isNumber) doButtonPressVisual(event.key + "-btn");
     });
 
     // We only want to allow digits and at most one "." or "-", also the "-" must be at the start.
-    const numberRegex = /^-*\d*\.?\d*$/;
+    const numberRegex = /^-?\d*\.?\d*$/;
     createInputFilter(calculatorInput, (value) => { return numberRegex.test(value) });
 
     // NUMBER INPUT
@@ -68,6 +69,7 @@
       if (calculatorInput.value.indexOf(".") === -1) {
         calculatorInput.value = calculatorInput.value + ".";
       }
+      doButtonPressVisual("decimal-btn");
     });
 
     // MATH OPERATIONS
@@ -79,22 +81,24 @@
           pendingOperation = operationType;
           calculatorInput.oldValue = ""; // Kind of hack-y, we are using the fact that the input filter will reject the value to clear the input
           calculatorInput.value = "";
-          event.preventDefault(); // So that minus "-", which is value input, doesn't get input after clearing
+          event.preventDefault(); // So that minus "-", which is valid input, doesn't get typed after this clearing
         }
       }
     }
 
-    const handleDivision = createOperationCallback("/", "÷");
-    addCalculatorOperation(calculatorInput, "divide-btn", "/", handleDivision);
+    const operations = [
+      { type: "%", button: "percent-btn" },
+      { type: "/", button: "divide-btn", visual: "÷", },
+      { type: "*", button: "multiply-btn", visual: "x", },
+      { type: "-", button: "minus-btn" },
+      { type: "+", button: "plus-btn" },
+      { type: "^", button: "exponent-btn" },
+    ];
 
-    const handleMultiplication = createOperationCallback("*", "x");
-    addCalculatorOperation(calculatorInput, "multiply-btn", "*", handleMultiplication);
-
-    const handleSubtraction = createOperationCallback("-");
-    addCalculatorOperation(calculatorInput, "minus-btn", "-", handleSubtraction);
-
-    const handleAddition = createOperationCallback("+");
-    addCalculatorOperation(calculatorInput, "plus-btn", "+", handleAddition);
+    for (let i = 0; i < operations.length; i++) {
+      const handleOperation = createOperationCallback(operations[i].type, operations[i].visual);
+      addCalculatorOperation(calculatorInput, operations[i].button, operations[i].type, handleOperation);
+    }
 
     // COMPUTATION
     const doComputation = () => {
@@ -105,6 +109,9 @@
 
         let computedValue;
         switch (pendingOperation) {
+          case "%":
+            computedValue = (firstNum / 100) * secondNum;
+            break;
           case "/":
             computedValue = firstNum / secondNum;
             break;
@@ -117,10 +124,13 @@
           case "+":
             computedValue = firstNum + secondNum;
             break;
+          case "^":
+            computedValue = firstNum ** secondNum;
+            break;
         }
 
         calculatorHistory.innerText = `${firstNum} ${pendingOperation} ${secondNum} =`;
-        calculatorInput.value = computedValue;
+        calculatorInput.value = computedValue; // TODO: Could integrate .toExponential() for scientific notation in larger numbers??
         pendingOperation = null;
       }
     };
@@ -297,8 +307,20 @@
   }
 
   /**
-   * Adds a click event listener to the operation button in the HTML
-   * and a keydown event listener for the operation key.
+   * Uses css class to visually simulate an onscreen calculator button being
+   * pressed. Timeout duration matches css, make sure to change both if modifiying! 
+   * 
+   * @param {HTMLElement} id The id of the target button. 
+   */
+  function doButtonPressVisual(id) {
+    const button = document.getElementById(id);
+    button.classList.add("pressed");
+    setTimeout(() => button.classList.remove("pressed"), 200);
+  }
+
+  /**
+   * Adds a click event listener to the operation button in the HTML and a keydown event
+   * listener for the operation key. If activated using keyboard, handles visual for onscreen button.
    * 
    * @param {HTMLElement} calculatorInput Reference to the calculator input.
    * @param {string} buttonId The id of the button on the calculator.
@@ -308,7 +330,10 @@
   function addCalculatorOperation(calculatorInput, buttonId, operationKey, operationCallback) {
     addButtonOnClick(buttonId, operationCallback);
     calculatorInput.addEventListener("keydown", (event) => {
-      if (event.key === operationKey) operationCallback(event);
+      if (event.key === operationKey) {
+        operationCallback(event);
+        doButtonPressVisual(buttonId);
+      }
     });
   }
 

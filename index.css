@@ -136,9 +136,10 @@ body:not(.dark-mode) #light-mode-toggle {
   --button-color: var(--base-color);
   background-color: var(--button-color);
   margin: 0 var(--button-pad);
-  transition: background-color 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+  transition: background-color 0.1s ease, transform 0.1s ease, opacity 0.1s ease;
 }
 
+.calculator-button.pressed,
 .calculator-button:focus-visible,
 .calculator-button:hover {
   transform: scale(0.95);
