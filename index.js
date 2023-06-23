@@ -18,12 +18,28 @@
     initializeMagicStars(numStarsPerText, starAnimInterval);
     window.onfocus = () => initializeMagicStars(numStarsPerText, starAnimInterval);
 
-    // CALCULATOR LOGIC
+    createCalculator();
+  }
+
+  function createCalculator() {
     const calculatorInput = document.getElementById("calculator-input");
+    const calculatorHistory = document.getElementById("calculator-history");
+    let pendingOperation = null;
 
-    // We only want to allow digits and at most one "."
-    createInputFilter(calculatorInput, (value) => { return /^\d*\.?\d*$/.test(value) });
+    // We use this to focus to the input when the user starts typing.
+    addEventListener("keydown", (event) => {
+      const operations = ["+", "-", "*", "/", "%", "Escape", "Enter", ".", "^", "="];
+      const isOperation = operations.includes(event.key); // The %, + and ^ end up just getting captured as 5, 6 and = if using a keyboard without number pad
+      const isNumber = /^[0-9]$/i.test(event.key);
 
+      if (isOperation || isNumber) calculatorInput.focus();
+    });
+
+    // We only want to allow digits and at most one "." or "-", also the "-" must be at the start.
+    const numberRegex = /^-*\d*\.?\d*$/;
+    createInputFilter(calculatorInput, (value) => { return numberRegex.test(value) });
+
+    // NUMBER INPUT
     const numberButtons = document.querySelectorAll(".calculator-button.number");
     numberButtons.forEach(button => {
       button.addEventListener("click", () => {
@@ -31,8 +47,21 @@
       });
     });
 
-    addButtonOnClick("clear-btn", () => {
+    // CLEARING
+    const clearCalculator = () => {
       calculatorInput.value = "";
+      calculatorHistory.innerText = "";
+      pendingOperation = null;
+    };
+    addCalculatorOperation(calculatorInput, "clear-btn", "Escape", clearCalculator);
+
+    // TOGGLE SIGN
+    addButtonOnClick("sign-btn", () => {
+      if (calculatorInput.value.startsWith("-")) {
+        calculatorInput.value = calculatorInput.value.slice(1);
+      } else {
+        calculatorInput.value = "-" + calculatorInput.value;
+      }
     });
 
     addButtonOnClick("decimal-btn", () => {
@@ -40,6 +69,62 @@
         calculatorInput.value = calculatorInput.value + ".";
       }
     });
+
+    // MATH OPERATIONS
+    function createOperationCallback(operationType, operationVisual) {
+      operationVisual = operationVisual || operationType;
+      return (event) => {
+        if (!pendingOperation) {
+          calculatorHistory.innerText = calculatorInput.value + " " + operationVisual;
+          pendingOperation = operationType;
+          calculatorInput.oldValue = ""; // Kind of hack-y, we are using the fact that the input filter will reject the value to clear the input
+          calculatorInput.value = "";
+          event.preventDefault(); // So that minus "-", which is value input, doesn't get input after clearing
+        }
+      }
+    }
+
+    const handleDivision = createOperationCallback("/", "÷");
+    addCalculatorOperation(calculatorInput, "divide-btn", "/", handleDivision);
+
+    const handleMultiplication = createOperationCallback("*", "x");
+    addCalculatorOperation(calculatorInput, "multiply-btn", "*", handleMultiplication);
+
+    const handleSubtraction = createOperationCallback("-");
+    addCalculatorOperation(calculatorInput, "minus-btn", "-", handleSubtraction);
+
+    const handleAddition = createOperationCallback("+");
+    addCalculatorOperation(calculatorInput, "plus-btn", "+", handleAddition);
+
+    // COMPUTATION
+    const doComputation = () => {
+      if (pendingOperation) {
+        const stripNonNumber = /[^\d.-]/g; // Matches anything that isn't a number, "-" or "." character.
+        const firstNum = parseFloat(calculatorHistory.innerText.replace(stripNonNumber, ""));
+        const secondNum = parseFloat(calculatorInput.value.replace(stripNonNumber, ""));
+
+        let computedValue;
+        switch (pendingOperation) {
+          case "/":
+            computedValue = firstNum / secondNum;
+            break;
+          case "*":
+            computedValue = firstNum * secondNum;
+            break;
+          case "-":
+            computedValue = firstNum - secondNum;
+            break;
+          case "+":
+            computedValue = firstNum + secondNum;
+            break;
+        }
+
+        calculatorHistory.innerText = `${firstNum} ${pendingOperation} ${secondNum} =`;
+        calculatorInput.value = computedValue;
+        pendingOperation = null;
+      }
+    };
+    addCalculatorOperation(calculatorInput, "equals-btn", "Enter", doComputation);
   }
 
   /**
@@ -50,20 +135,14 @@
    * @param {(value: string) => boolean} inputFilter A function which returns true if the input is valid and false otherwise.
    */
   function createInputFilter(targetInput, inputFilter) {
-    const captureEvents = ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"];
+    const captureEvents = ["input", "keydown", "keyup", "mouseup", "select", "contextmenu", "drop"];
     captureEvents.forEach(eventType => {
-      targetInput.addEventListener(eventType, function (e) {
+      targetInput.addEventListener(eventType, function () {
         if (inputFilter(this.value)) {
-          // Accepted value.
-
           this.oldValue = this.value;
-          this.oldSelectionStart = this.selectionStart;
-          this.oldSelectionEnd = this.selectionEnd;
         } else if (this.hasOwnProperty("oldValue")) {
           this.value = this.oldValue;
-          this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
-        } else {
-          // Rejected value: nothing to restore.
+        } else { // Value rejected: nothing to restore.
           this.value = "";
         }
       });
@@ -215,6 +294,22 @@
    */
   function addButtonOnClick(id, func) {
     document.getElementById(id).addEventListener("click", func);
+  }
+
+  /**
+   * Adds a click event listener to the operation button in the HTML
+   * and a keydown event listener for the operation key.
+   * 
+   * @param {HTMLElement} calculatorInput Reference to the calculator input.
+   * @param {string} buttonId The id of the button on the calculator.
+   * @param {string} operationKey The string name for the corresponding key on the keyboard.
+   * @param {(evt: Event) => any} operationCallback The calculator operation function to trigger.
+   */
+  function addCalculatorOperation(calculatorInput, buttonId, operationKey, operationCallback) {
+    addButtonOnClick(buttonId, operationCallback);
+    calculatorInput.addEventListener("keydown", (event) => {
+      if (event.key === operationKey) operationCallback(event);
+    });
   }
 
 })();

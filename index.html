@@ -25,7 +25,11 @@
     </p>
 
     <section id="calculator-container">
-      <input type="text" id="calculator-input">
+      <div id="input-wrap">
+        <input type="text" id="calculator-input">
+        <p id="calculator-history"></p>
+      </div>
+      
       <div class="calculator-row">
         <button id="clear-btn" class="calculator-button utility">AC</button>
         <button id="sign-btn" class="calculator-button utility">+/-</button>
@@ -48,7 +52,7 @@
         <button id="1-btn" class="calculator-button number">1</button>
         <button id="2-btn" class="calculator-button number">2</button>
         <button id="3-btn" class="calculator-button number">3</button>
-        <button id="+-btn" class="calculator-button operation">+</button>
+        <button id="plus-btn" class="calculator-button operation">+</button>
       </div>
       <div class="calculator-row">
         <button id="0-btn" class="calculator-button number">0</button>
