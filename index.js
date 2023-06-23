@@ -28,7 +28,7 @@
 
     // We use this to focus to the input when the user starts typing.
     addEventListener("keydown", (event) => {
-      const operations = ["+", "-", "*", "/", "%", "Escape", "Enter", ".", "^", "="];
+      const operations = ["+", "-", "*", "/", "%", "Escape", "Enter", "Backspace", ".", "^", "="];
       const isOperation = operations.includes(event.key); // The %, + and ^ end up just getting captured as 5, 6 and = if using a keyboard without number pad
       const isNumber = /^[0-9]$/i.test(event.key);
 
@@ -76,13 +76,17 @@
     function createOperationCallback(operationType, operationVisual) {
       operationVisual = operationVisual || operationType;
       return (event) => {
-        if (!pendingOperation) {
-          calculatorHistory.innerText = calculatorInput.value + " " + operationVisual;
-          pendingOperation = operationType;
-          calculatorInput.oldValue = ""; // Kind of hack-y, we are using the fact that the input filter will reject the value to clear the input
-          calculatorInput.value = "";
-          event.preventDefault(); // So that minus "-", which is valid input, doesn't get typed after this clearing
+        if (pendingOperation) {
+          const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
+          if (!result) return;
+          calculatorInput.value = result.inputResult;
         }
+
+        calculatorHistory.innerText = calculatorInput.value + " " + operationVisual;
+        pendingOperation = operationType;
+        calculatorInput.oldValue = ""; // Kind of hack-y, we are using the fact that the input filter will reject the value to clear the input
+        calculatorInput.value = "";
+        event.preventDefault(); // So that minus "-", which is valid input, doesn't get typed after this clearing
       }
     }
 
@@ -101,40 +105,14 @@
     }
 
     // COMPUTATION
-    const doComputation = () => {
-      if (pendingOperation) {
-        const stripNonNumber = /[^\d.-]/g; // Matches anything that isn't a number, "-" or "." character.
-        const firstNum = parseFloat(calculatorHistory.innerText.replace(stripNonNumber, ""));
-        const secondNum = parseFloat(calculatorInput.value.replace(stripNonNumber, ""));
-
-        let computedValue;
-        switch (pendingOperation) {
-          case "%":
-            computedValue = (firstNum / 100) * secondNum;
-            break;
-          case "/":
-            computedValue = firstNum / secondNum;
-            break;
-          case "*":
-            computedValue = firstNum * secondNum;
-            break;
-          case "-":
-            computedValue = firstNum - secondNum;
-            break;
-          case "+":
-            computedValue = firstNum + secondNum;
-            break;
-          case "^":
-            computedValue = firstNum ** secondNum;
-            break;
-        }
-
-        calculatorHistory.innerText = `${firstNum} ${pendingOperation} ${secondNum} =`;
-        calculatorInput.value = computedValue; // TODO: Could integrate .toExponential() for scientific notation in larger numbers??
-        pendingOperation = null;
-      }
-    };
-    addCalculatorOperation(calculatorInput, "equals-btn", "Enter", doComputation);
+    addCalculatorOperation(calculatorInput, "equals-btn", "Enter", () => {
+      const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
+      if (!result) return;
+      
+      pendingOperation = null;
+      calculatorInput.value = result.inputResult;
+      calculatorHistory.innerText = result.displayHistory;
+    });
   }
 
   /**
@@ -159,6 +137,42 @@
     });
   }
 
+  function getComputationResult(pendingOperation, calculatorInput, calculatorHistory) {
+    if (!pendingOperation) {
+      return;
+    }
+
+    const stripNonNumber = /[^\d.-]/g; // Matches anything that isn't a number, "-" or "." character.
+    const firstNum = parseFloat(calculatorHistory.innerText.replace(stripNonNumber, ""));
+    const secondNum = parseFloat(calculatorInput.value.replace(stripNonNumber, ""));
+
+    let computedValue;
+    switch (pendingOperation) {
+      case "%":
+        computedValue = (firstNum / 100) * secondNum;
+        break;
+      case "/":
+        computedValue = firstNum / secondNum;
+        break;
+      case "*":
+        computedValue = firstNum * secondNum;
+        break;
+      case "-":
+        computedValue = firstNum - secondNum;
+        break;
+      case "+":
+        computedValue = firstNum + secondNum;
+        break;
+      case "^":
+        computedValue = firstNum ** secondNum;
+        break;
+    }
+
+    return {
+      inputResult: computedValue, // TODO: Could integrate .toExponential() for scientific notation in larger numbers??
+      displayHistory: `${firstNum} ${pendingOperation} ${secondNum} =`,
+    }
+  };
 
   /**
    * Clears all existing magic star elements, then gives each
