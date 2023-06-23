@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Calculator</title>
+
+  <link href="index.css" rel="stylesheet" type="text/css" />
+  <link href="assets/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="index.js"></script>
+</head>
+
+<body>
+  <section class="main-content">
+    <p>
+      This simple calculator made with vanilla HTML, CSS + JS can help you
+      do <span class="magic-text">mathematics</span> more easily! Use either 
+      your keyboard or mouse to get started.
+    </p>
+
+    <section id="calculator-container">
+      <input type="text" id="calculator-input">
+      <div class="calculator-row">
+        <button id="clear-btn" class="calculator-button utility">AC</button>
+        <button id="sign-btn" class="calculator-button utility">+/-</button>
+        <button id="percent-btn" class="calculator-button utility">%</button>
+        <button id="divide-btn" class="calculator-button operation">÷</button>
+      </div>
+      <div class="calculator-row">
+        <button id="7-btn" class="calculator-button number">7</button>
+        <button id="8-btn" class="calculator-button number">8</button>
+        <button id="9-btn" class="calculator-button number">9</button>
+        <button id="multiply-btn" class="calculator-button operation">x</button>
+      </div>
+      <div class="calculator-row">
+        <button id="4-btn" class="calculator-button number">4</button>
+        <button id="5-btn" class="calculator-button number">5</button>
+        <button id="6-btn" class="calculator-button number">6</button>
+        <button id="minus-btn" class="calculator-button operation">-</button>
+      </div>
+      <div class="calculator-row">
+        <button id="1-btn" class="calculator-button number">1</button>
+        <button id="2-btn" class="calculator-button number">2</button>
+        <button id="3-btn" class="calculator-button number">3</button>
+        <button id="+-btn" class="calculator-button operation">+</button>
+      </div>
+      <div class="calculator-row">
+        <button id="0-btn" class="calculator-button number">0</button>
+        <button id="decimal-btn" class="calculator-button">.</button>
+        <button id="exponent-btn" class="calculator-button">^</button>
+        <button id="equals-btn" class="calculator-button operation">=</button>
+      </div>
+    </section>
+  </section>
+
+  <img tabindex="0" id="dark-mode-toggle" class="theme-button" src="assets/dark_mode.png" />
+  <img tabindex="0" id="light-mode-toggle" class="theme-button" src="assets/light_mode.png" />
+</body>
+
+</html>
