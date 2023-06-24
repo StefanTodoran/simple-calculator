@@ -12,6 +12,10 @@
     addButtonOnClick("dark-mode-toggle", toggleDarkMode);
     addButtonOnClick("light-mode-toggle", toggleDarkMode);
 
+    const modal = document.getElementById("modal");
+    addButtonOnClick("help-btn", () => modal.showModal());
+    modal.addEventListener("click", () => modal.close());
+
     // MAGIC TEXT
     const numStarsPerText = 3;
     const starAnimInterval = 1000; // ms
@@ -21,6 +25,10 @@
     createCalculator();
   }
 
+  /**
+   * Creates the various event listeners and functions needed for the
+   * calculator to be able to handle keyboard and mouse input and do computation.
+   */
   function createCalculator() {
     const calculatorInput = document.getElementById("calculator-input");
     const calculatorHistory = document.getElementById("calculator-history");
@@ -37,7 +45,7 @@
     });
 
     // We only want to allow digits and at most one "." or "-", also the "-" must be at the start.
-    const numberRegex = /^-?\d*\.?\d*$/;
+    const numberRegex = /^(?!-$)-?\d*\.?\d*$/; // /^-?\d*\.?\d*$/;
     createInputFilter(calculatorInput, (value) => { return numberRegex.test(value) });
 
     // NUMBER INPUT
@@ -60,7 +68,7 @@
     addButtonOnClick("sign-btn", () => {
       if (calculatorInput.value.startsWith("-")) {
         calculatorInput.value = calculatorInput.value.slice(1);
-      } else {
+      } else if (calculatorInput.value !== "") {
         calculatorInput.value = "-" + calculatorInput.value;
       }
     });
@@ -76,6 +84,8 @@
     function createOperationCallback(operationType, operationVisual) {
       operationVisual = operationVisual || operationType;
       return (event) => {
+        if (calculatorInput.value === "") return;
+
         if (pendingOperation) {
           const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
           if (!result) return;
@@ -84,7 +94,6 @@
 
         calculatorHistory.innerText = calculatorInput.value + " " + operationVisual;
         pendingOperation = operationType;
-        calculatorInput.oldValue = ""; // Kind of hack-y, we are using the fact that the input filter will reject the value to clear the input
         calculatorInput.value = "";
         event.preventDefault(); // So that minus "-", which is valid input, doesn't get typed after this clearing
       }
@@ -108,10 +117,17 @@
     addCalculatorOperation(calculatorInput, "equals-btn", "Enter", () => {
       const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
       if (!result) return;
-      
+
       pendingOperation = null;
-      calculatorInput.value = result.inputResult;
-      calculatorHistory.innerText = result.displayHistory;
+      if (result.inputResult.toString().length > 11 || !numberRegex.test(result.inputResult)) { 
+        // Ensure this length cap matches maxlength in the HTML. 
+        // It isn't actually overflow and we can handle larger values but... this is a simulation anyway :)
+        calculatorInput.value = "";
+        calculatorHistory.innerText = "Overflow";
+      } else {
+        calculatorInput.value = result.inputResult;
+        calculatorHistory.innerText = result.displayHistory;
+      }
     });
   }
 
@@ -137,8 +153,22 @@
     });
   }
 
+  /**
+   * @typedef {Object} ComputationResult
+   * @property {number} inputResult The resulting number to be shown in the input element.
+   * @property {string} displayHistory The computation which caused the result, shown in history element.
+   */
+  /**
+   * Given the current calculator state, computes the operation and returns an
+   * object representing the result.
+   * 
+   * @param {string} pendingOperation Should be one of "+", "-", "*", "/", "%", "^", "="
+   * @param {HTMLElement} calculatorInput The calculator text input element.
+   * @param {HTMLElement} calculatorHistory The calculator history element.
+   * @returns {ComputationResult}
+   */
   function getComputationResult(pendingOperation, calculatorInput, calculatorHistory) {
-    if (!pendingOperation) {
+    if (!pendingOperation || calculatorInput.value === "") {
       return;
     }
 
@@ -172,7 +202,7 @@
       inputResult: computedValue, // TODO: Could integrate .toExponential() for scientific notation in larger numbers??
       displayHistory: `${firstNum} ${pendingOperation} ${secondNum} =`,
     }
-  };
+  }
 
   /**
    * Clears all existing magic star elements, then gives each

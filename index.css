@@ -4,7 +4,7 @@ html {
   --secondary-color: #b8b8ff;
 
   --base-color-rgb: 217, 217, 217;
-  --base-color: rgba(var(--base-color-rgb), 1);
+  --base-color: rgb(var(--base-color-rgb));
 
   --highlight-color: #fb6f92;
   --light-highlight: #ffc2d1;
@@ -43,15 +43,52 @@ button {
 .main-content>p {
   max-width: 35em;
   margin-bottom: 3em;
+  animation: pop-in 0.5s ease forwards;
 }
 
-/* ============ */
-/* THEME BUTTON */
-.theme-button {
+#modal {
+  border-radius: 10px;
+  border: 1px solid var(--base-color);
+  background-color: white;
+  color: black;
+  box-shadow: 0 0 10px 1px rgba(var(--base-color-rgb), 0.5);
+  padding: 20px;
+  max-width: min(35em, 80vw);
+}
+
+#modal[open] {
+  animation: pop-in 0.25s cubic-bezier(.17, .67, .56, 1.32) forwards;
+}
+
+#modal::backdrop {
+  background-color: transparent;
+  transition: background-color 0.25s ease, backdrop-filter 0.25s ease;
+}
+
+#modal[open]::backdrop {
+  background-color: rgba(125, 125, 125, 0.1);
+  backdrop-filter: blur(3px);
+}
+
+#modal :first-child {
+  font-size: 1.25em;
+  margin-top: 0;
+}
+
+#modal :last-child {
+  margin-bottom: 0;
+}
+
+/* =============== */
+/* UTILITY BUTTONS */
+.utility-buttons-container {
   position: fixed;
   --size: clamp(30px, 10vw, 50px);
   bottom: calc(var(--size) / 5);
   right: calc(var(--size) / 5);
+}
+
+.util-button {
   width: var(--size);
   height: var(--size);
   border: 2px solid var(--secondary-color);
@@ -59,10 +96,20 @@ button {
   transition: border 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
 }
 
+.overlaping-util-buttons {
+  width: calc(var(--size) + 2px);
+  /* 2px to account for border size */
+  height: calc(var(--size) + 2px);
+}
+
+.overlaping-util-buttons>.util-button {
+  position: absolute;
+}
+
 body.dark-mode #dark-mode-toggle,
 body:not(.dark-mode) #light-mode-toggle,
-.theme-button:focus-visible,
-.theme-button:hover {
+.util-button:focus-visible,
+.util-button:hover {
   outline: none;
   border-color: var(--primary-color);
   transform: scale(0.95);
@@ -75,8 +122,26 @@ body:not(.dark-mode) #light-mode-toggle {
   pointer-events: none;
 }
 
-/* END THEME BUTTON */
-/* ================ */
+#big-cloud,
+#middle-cloud,
+#tiny-cloud {
+  transition: fill 0.25s ease;
+}
+
+body.dark-mode #big-cloud {
+  fill: var(--secondary-color);
+}
+
+body.dark-mode #middle-cloud {
+  fill: #ffc2d1c7;
+}
+
+body.dark-mode #tiny-cloud {
+  fill: #ffc2d186;
+}
+
+/* END UTILITY BUTTONS */
+/* =================== */
 
 /* ========== */
 /* CALCULATOR */
@@ -86,19 +151,8 @@ body:not(.dark-mode) #light-mode-toggle {
   border-radius: calc(var(--button-size)/3);
   box-shadow: 0 0 10px 1px rgba(var(--base-color-rgb), 0.5);
   padding: calc(var(--button-size) * 0.5);
-  /* opacity: 0;
-  animation: fade-in 2s ease forwards;
-  animation-delay: 1s; */
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  opacity: 0;
+  animation: pop-in 0.5s ease forwards;
 }
 
 #input-wrap {
@@ -118,7 +172,7 @@ body:not(.dark-mode) #light-mode-toggle {
   background: none;
   border: none;
   font-size: var(--text-size, 36px);
-  line-height: var(--input-height, 36px);
+  line-height: var(--line-height, 36px);
   text-align: right;
   width: 100%;
   transition: color 0.25s ease;
@@ -262,6 +316,65 @@ body.dark-mode .magic-text>.magic-star {
 /* END MAGIC TEXT */
 /* ============== */
 
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+    filter: blur(3px);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ====== */
+/* FOOTER */
+#footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 25px 0;
+  animation: pop-in 0.5s ease forwards;
+  --footer-color: 140, 140, 140;
+}
+
+#footer-links {
+  display: flex;
+  border-top: 1px solid rgba(var(--footer-color), 0.5);
+  padding: 0 25px;
+}
+
+.footer-link {
+  color: rgb(var(--footer-color));
+  transition: background-color 0.2s ease;
+  font-size: 12px;
+  margin: 3em min(2em, 3.5vw);
+  padding: 0.25em 0.5em;
+  border-radius: 0.5em;
+
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  filter: grayscale(0.1);
+  cursor: pointer;
+}
+
+.footer-link:hover {
+  opacity: 1;
+  background-color: rgba(var(--footer-color), 0.1);
+}
+
+.tiny-logo {
+  margin-right: 0.5rem;
+}
+
+/* END FOOTER */
+/* ========== */
+
 body.dark-mode {
   color: white;
   background-color: #0b0b0b;
@@ -286,29 +399,34 @@ body.dark-mode .calculator-button:not(.operation) {
   color: white;
 }
 
-body.dark-mode .calculator-button.utility {
-  /* background-color: rgba(var(--base-color-rgb), 0.85); */
+body.dark-mode #footer {
+  --footer-color: 200, 200, 200;
+}
+
+body.dark-mode #modal {
+  background-color: #0b0b0b;
+  color: white;
 }
 
 /* ===== BEGIN SCREEN SIZE SPECIFIC STYLES ===== */
 /* Styles cascade down, with styles for desktop  */
 /* applying to all sizes, tablet styles applying */
 /* to tablet and mobile, and mobile styles being */
-/* mobile specific.                              */
+/* mobile specific. For this specific project    */
+/* these didn't see much utilization.            */
 /* ============================================= */
 
-@media screen and (max-width: 1050px) {
-  .divider {
-    left: 25%;
-    right: 25%;
-  }
-}
+@media screen and (max-width: 1050px) {}
 
 /* END SCREEN MAX-WIDTH 1050px */
 /* =========================== */
 
 
 @media screen and (max-width:767px) {
+  #footer-links {
+    padding: 0 10px;
+  }
+
   .footer-link {
     font-size: 10px;
   }
@@ -319,7 +437,7 @@ body.dark-mode .calculator-button.utility {
   }
 
   p {
-    font-size: 16px;
+    font-size: 14px;
   }
 }
 

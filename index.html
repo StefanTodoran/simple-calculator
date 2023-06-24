@@ -20,7 +20,7 @@
   <section class="main-content">
     <p>
       This simple calculator made with vanilla HTML, CSS + JS can help you
-      do <span class="magic-text">mathematics</span> more easily! Use either 
+      do <span class="magic-text">mathematics</span> more easily! Use either
       your keyboard or mouse to get started.
     </p>
 
@@ -29,7 +29,7 @@
         <input type="text" id="calculator-input" maxlength="11">
         <p id="calculator-history"></p>
       </div>
-      
+
       <div class="calculator-row">
         <button id="clear-btn" class="calculator-button utility">AC</button>
         <button id="sign-btn" class="calculator-button utility">+/-</button>
@@ -63,8 +63,52 @@
     </section>
   </section>
 
-  <img tabindex="0" id="dark-mode-toggle" class="theme-button" src="assets/dark_mode.png" />
-  <img tabindex="0" id="light-mode-toggle" class="theme-button" src="assets/light_mode.png" />
+  <section id="footer">
+    <div id="footer-links">
+      <a href="https://stefantodoran.github.io/" target="_blank" class="footer-link">
+        <img src="assets/leaf-logo.png" height="15" alt="" class="tiny-logo" />
+        <span>Stefan Todoran</span>
+      </a>
+      <a class="footer-link">
+        <span>Made With ❤️</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="utility-buttons-container">
+    <svg id="help-btn" class="util-button" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path id="tiny-cloud"
+        d="M91.2379 89.3132C92.536 88.8427 93.2068 87.4089 92.7363 86.1109C92.4395 85.2921 91.7594 84.7229 90.9719 84.5323C90.9466 84.2313 90.8816 83.9288 90.7737 83.6313C90.115 81.814 88.1077 80.8748 86.2904 81.5336C84.4732 82.1924 83.534 84.1996 84.1928 86.0169C84.7989 87.6889 86.5466 88.6176 88.2375 88.2422C88.8384 89.2538 90.0911 89.7289 91.2379 89.3132Z"
+        fill="#C5BCF8" />
+      <path id="middle-cloud"
+        d="M68 73.5C68 70.4624 70.4624 68 73.5 68C76.5376 68 79 70.4624 79 73.5C79 74.6032 78.6752 75.6306 78.116 76.4916C78.669 77.1777 79 78.0502 79 79C79 81.2091 77.2091 83 75 83C73.4176 83 72.0497 82.0811 71.401 80.7478C70.965 80.9108 70.4929 81 70 81C67.7909 81 66 79.2091 66 77C66 75.5194 66.8044 74.2267 68.0001 73.5351L68 73.5Z"
+        fill="#A99BF5" />
+      <path id="big-cloud" fill-rule="evenodd" clip-rule="evenodd"
+        d="M46.6472 9.91561C47.8681 9.47534 49.3511 9.14354 50.5336 9.04145C52.1573 8.90107 54.2539 9.1244 55.8328 9.60295C60.3777 10.9748 63.9318 14.363 65.4851 18.7912L65.6257 19.1996L66.8402 19.2315C68.5406 19.2761 69.6656 19.4739 71.27 20.0035C75.719 21.4839 79.2476 25.1974 80.5707 29.7852C80.999 31.2719 81.0885 31.9227 81.0885 33.754C81.0885 35.4449 81.0438 35.8213 80.7306 37.1166C80.5132 38.0354 80.0849 39.2222 79.7334 39.9114L79.5991 40.1666L79.906 40.5494C80.9543 41.8702 81.9259 43.727 82.3989 45.3031C82.8656 46.8727 83.0062 47.8617 82.9998 49.642C82.9934 50.8862 82.9678 51.1989 82.8272 52.0028C82.6354 53.0748 82.2711 54.3446 81.8875 55.2379C80.9031 57.5604 79.2412 59.698 77.2468 61.1911C75.3227 62.6459 72.9256 63.6604 70.6372 63.9922C68.988 64.2347 67.0128 64.1772 65.5362 63.8391C64.9929 63.7114 64.9545 63.7178 64.8714 63.9156C64.8267 64.0177 64.6349 64.3687 64.4431 64.7005C62.4616 68.1397 59.112 70.6728 55.347 71.5916C54.0622 71.9043 53.2823 72 51.876 72C50.4506 72 49.8816 71.9362 48.5521 71.6235C46.1997 71.062 43.9624 69.8944 42.2237 68.3247L41.9105 68.0376L41.5845 68.2737C40.0504 69.403 37.877 70.3474 35.953 70.7239C32.2838 71.4321 28.6722 70.8068 25.5081 68.899C21.8901 66.7231 19.3971 63.0798 18.6684 58.894C18.5725 58.3453 18.5213 57.6944 18.4958 56.833C18.4702 55.9908 18.4319 55.5569 18.3871 55.5441C17.946 55.4293 16.8082 54.9699 16.137 54.6444C13.1327 53.1833 10.6717 50.6501 9.29736 47.6001C7.68012 44.0142 7.57146 40.0071 8.99053 36.3573C10.5822 32.2609 14.0596 29.0322 18.2976 27.7178L18.6556 27.6093L18.7003 26.933C18.8537 24.4509 19.3651 22.575 20.4262 20.5586C21.8581 17.8532 24.1529 15.6646 26.9847 14.2992C30.967 12.3722 35.5503 12.353 39.507 14.2481C39.8778 14.4268 40.1974 14.5735 40.2166 14.5735C40.2422 14.5799 40.3636 14.4523 40.4915 14.2928C42.0512 12.4105 44.4291 10.7196 46.6472 9.91561ZM55.082 25.7528C53.1367 23.9176 50.5854 23 47.4282 23C45.3554 23 43.5216 23.4096 41.9271 24.2289C40.3645 25.0482 39.1526 26.2116 38.2916 27.7191C37.4305 29.1938 37 30.9143 37 32.8806H41.1139C41.1139 30.9799 41.672 29.4888 42.7882 28.4073C43.9362 27.2931 45.4989 26.736 47.4761 26.736C49.4214 26.736 50.9681 27.3095 52.1162 28.4565C53.2642 29.6035 53.8383 31.1601 53.8383 33.1264C53.8383 35.8464 52.9453 37.698 51.1595 38.6812C49.3736 39.6643 46.9021 40.1559 43.7449 40.1559H42.3576L42.549 47.9228H46.328L46.4715 43.2528C50.0114 43.2528 52.8178 42.4335 54.8907 40.7949C56.9636 39.1236 58 36.5674 58 33.1264C58 30.0459 57.0273 27.588 55.082 25.7528ZM42.3098 57.1152C42.8838 57.7051 43.5854 58 44.4146 58C45.2118 58 45.8815 57.7051 46.4237 57.1152C46.9977 56.5253 47.2847 55.8043 47.2847 54.9522C47.2847 54.1002 46.9977 53.3792 46.4237 52.7893C45.8815 52.1994 45.2118 51.9045 44.4146 51.9045C43.5854 51.9045 42.8838 52.1994 42.3098 52.7893C41.7358 53.3792 41.4487 54.1002 41.4487 54.9522C41.4487 55.8043 41.7358 56.5253 42.3098 57.1152Z"
+        fill="#8C7AF2" />
+    </svg>
+    <div class="overlaping-util-buttons">
+      <img tabindex="0" id="dark-mode-toggle" class="util-button" src="assets/dark_mode.png" />
+      <img tabindex="0" id="light-mode-toggle" class="util-button" src="assets/light_mode.png" />
+    </div>
+  </section>
+
+  <dialog id="modal">
+    <p><span class="magic-text">Instructions</span></p>
+    <p>
+      The calculator can be used by both keyboard and mouse input. For keyboard input, simply start typing and the
+      calculator input will be focused. Use "escape" to clear and "enter" to compute the result.
+    </p>
+    <p>
+      The functionality of the calculator should feel familiar to any Windows users, at it is designed to mimic the
+      built in Windows calculator. Inputting any operation after a number will cause that operation to be pending. Once
+      another number has been input, the result can be computed either by pressing "enter" or another operation. This
+      way many operations can be chained in a row.
+    </p>
+    <p>
+      Click anywhere to close this popup.
+    </p>
+  </dialog>
 </body>
 
 </html>
