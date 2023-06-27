@@ -147,10 +147,10 @@ body.dark-mode #tiny-cloud {
 /* CALCULATOR */
 #calculator-container {
   border: 1px solid var(--base-color);
-  --button-size: clamp(30px, 10vw, 50px);
-  border-radius: calc(var(--button-size)/3);
+  --button-size: clamp(45px, 15vw, 75px);
+  border-radius: calc(var(--button-size)/4);
   box-shadow: 0 0 10px 1px rgba(var(--base-color-rgb), 0.5);
-  padding: calc(var(--button-size) * 0.5);
+  padding: calc(var(--button-size) * 0.35);
   opacity: 0;
   animation: pop-in 0.5s ease forwards;
 }
@@ -163,7 +163,7 @@ body.dark-mode #tiny-cloud {
   border-radius: 10px;
   box-shadow: inset 0 0 10px 1px rgba(var(--base-color-rgb), 0.25);
   border: 1px solid rgba(var(--base-color-rgb), 0.4);
-  width: calc(var(--button-size) * 5);
+  width: calc(var(--button-size) * 4); /* An example where the coming relative to parent size units would be more clean/clear. */
   transition: background-color 0.25s ease;
   height: 46px;
 }
@@ -175,7 +175,7 @@ body.dark-mode #tiny-cloud {
   line-height: var(--line-height, 36px);
   text-align: right;
   width: 100%;
-  transition: color 0.25s ease;
+  transition: color 0.25s ease, font-size 0.1s ease, line-height 0.1s ease;
 }
 
 #calculator-input:focus-visible {
@@ -196,7 +196,6 @@ body.dark-mode #tiny-cloud {
 
 .calculator-button {
   border: none;
-  --button-size: clamp(45px, 15vw, 65px);
   border-radius: calc(var(--button-size)/2);
   width: var(--button-size);
   height: var(--button-size);
