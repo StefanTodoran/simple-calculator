@@ -209,6 +209,8 @@
       case "^":
         computedValue = firstNum ** secondNum;
         break;
+      default:
+        return { error: "Unknown operation!" }
     }
 
     const result = {
