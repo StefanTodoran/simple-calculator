@@ -5,6 +5,9 @@
   const maxInputLength = 25; // Make sure this matches the maxlength value in the HTML.
   var darkMode;
 
+  /**
+   * Main entry point for calculator application.
+   */
   function init() {
     handleDarkModePreference();
     setTimeout(() => document.body.classList.add("do-transition"), 10);
@@ -17,11 +20,12 @@
     addButtonOnClick("help-btn", () => modal.showModal());
     modal.addEventListener("click", () => modal.close());
 
-    // MAGIC TEXT
     const numStarsPerText = 3;
     const starAnimInterval = 1000; // ms
     initializeMagicStars(numStarsPerText, starAnimInterval);
     window.onfocus = () => initializeMagicStars(numStarsPerText, starAnimInterval);
+    // When another tab is active, setInterval is broken for intervals smaller than 1 second,
+    // we do this onfocus to reset the stars so they don't become synced up.
 
     createCalculator();
   }
@@ -64,12 +68,11 @@
     });
 
     // CLEARING
-    const clearCalculator = () => {
+    addCalculatorOperation("clear-btn", ["Escape"], () => {
       calculatorInput.value = "";
       calculatorHistory.innerText = "";
       pendingOperation = null;
-    };
-    addCalculatorOperation(calculatorInput, "clear-btn", ["Escape"], clearCalculator);
+    });
 
     // TOGGLE SIGN
     addButtonOnClick("sign-btn", () => {
@@ -118,11 +121,11 @@
 
     for (let i = 0; i < operations.length; i++) {
       const handleOperation = createOperationCallback(operations[i].type, operations[i].visual);
-      addCalculatorOperation(calculatorInput, operations[i].button, [operations[i].type], handleOperation);
+      addCalculatorOperation(operations[i].button, [operations[i].type], handleOperation);
     }
 
     // COMPUTATION
-    addCalculatorOperation(calculatorInput, "equals-btn", ["Enter", "="], () => {
+    addCalculatorOperation("equals-btn", ["Enter", "="], (event) => {
       const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
       if (!result) return;
 
@@ -135,7 +138,6 @@
         calculatorHistory.innerText = result.displayHistory;
       }
 
-      calculatorInput.focus();
       sizeTextFromLength(calculatorInput);
       event.preventDefault(); // So it doesn't type the "=", which would cause our filter to kick in.
     });
@@ -223,11 +225,172 @@
   }
 
   /**
+   * A helper function for adding click event listeners to 
+   * elements, identified by id.
+   * 
+   * @param {string} id String id of the target element.
+   * @param {(evt: Event) => any} func The function that sound trigger on click.
+   */
+  function addButtonOnClick(id, func) {
+    document.getElementById(id).addEventListener("click", func);
+  }
+
+  /**
+   * Uses css class to visually simulate an onscreen calculator button being
+   * pressed. Timeout duration matches css, make sure to change both if modifiying! 
+   * 
+   * @param {HTMLElement} id The id of the target button. 
+   */
+  function doButtonPressVisual(id) {
+    const button = document.getElementById(id);
+    button.classList.add("pressed");
+    setTimeout(() => button.classList.remove("pressed"), 200);
+  }
+
+  /**
+   * Adds a click event listener to the operation button in the HTML and a keydown event
+   * listener for the operation key. If activated using keyboard, handles visual for onscreen button.
+   * 
+   * @param {string} buttonId The id of the button on the calculator.
+   * @param {string[]} operationKeys An array of string names for the corresponding keys on the keyboard.
+   * @param {(evt: Event) => any} operationCallback The calculator operation function to trigger.
+   */
+  function addCalculatorOperation(buttonId, operationKeys, operationCallback) {
+    addButtonOnClick(buttonId, operationCallback);
+    addEventListener("keydown", (event) => {
+      if (operationKeys.includes(event.key)) {
+        operationCallback(event);
+        doButtonPressVisual(buttonId);
+      }
+    });
+  }
+
+  function sizeTextFromLength(calculatorInput) {
+    const maxLengthNoShrink = 12; // May need to be adjusted if CSS styles are changed.
+
+    const maxFontSize = 36;
+    const maxLineHeight = 36;
+    const minFontSize = 18;
+    const minLineHeight = 58;
+
+    const bezierCurve = { x1: .25, y1: .8, x2: 1, y2: 1 };
+    const interpolationAmount = (calculatorInput.value.length - maxLengthNoShrink) / (maxInputLength - maxLengthNoShrink);
+    const interpolatedValue = 1 - cubicBezierInterpolation(interpolationAmount, bezierCurve);
+
+    calculatorInput.style.setProperty("--text-size", progressionInterpolate(interpolatedValue, minFontSize, maxFontSize) + "px");
+    calculatorInput.style.setProperty("--line-height", progressionInterpolate(interpolatedValue, minLineHeight, maxLineHeight) + "px");
+  }
+
+  /**
+   * @param {number} progress An interpolation amount between 0 and 1. 
+   * @param {number} minBound The lower bound for the interpolation output range. 
+   * @param {number} maxBound The upper bound for the interpolation output range.
+   */
+  function progressionInterpolate(progress, minBound, maxBound) {
+    return (maxBound - minBound) * progress + minBound;
+  }
+
+  /**
+   * @typedef {Object} CubicBezier
+   * @property {number} x1 Typically between 0 and 1 but can be outside that range.
+   * @property {number} y1
+   * @property {number} x2
+   * @property {number} y2
+   */
+  /**
+   * JavaScript version of cubic bezier interpolation, intended to mimic
+   * the CSS version. Uses 1e-6 precision.
+   * 
+   * @param {number} time The interpolation amount, must be between 0 and 1. 
+   * @param {CubicBezier} bezier An object describing the bezier curve.
+   * @returns {number} The output 'progress amount', may be outside 0 to 1 range based on the curve.
+   */
+  function cubicBezierInterpolation(time, bezier) {
+    // Ensure time is between 0 and 1
+    time = Math.max(0, Math.min(1, time));
+
+    // Extract bezier control points
+    const p0 = { x: 0, y: 0 };
+    const p1 = { x: bezier.x1, y: bezier.y1 };
+    const p2 = { x: bezier.x2, y: bezier.y2 };
+    const p3 = { x: 1, y: 1 };
+
+    // Calculate the coefficients for the cubic bezier equation
+    const cx = 3 * p1.x;
+    const bx = 3 * (p2.x - p1.x) - cx;
+    const ax = 1 - cx - bx;
+
+    const cy = 3 * p1.y;
+    const by = 3 * (p2.y - p1.y) - cy;
+    const ay = 1 - cy - by;
+
+    const epsilon = 1e-6; // Adjust this value to control precision
+    let t2 = time;
+    let x2, d2;
+    for (let i = 0; i < 8; i++) {
+      x2 = ((ax * t2 + bx) * t2 + cx) * t2 - time;
+      if (Math.abs(x2) < epsilon) {
+        return ((ay * t2 + by) * t2 + cy) * t2;
+      }
+      d2 = (3 * ax * t2 + 2 * bx) * t2 + cx;
+      if (Math.abs(d2) < epsilon) {
+        break;
+      }
+      t2 -= x2 / d2;
+    }
+
+    // Fallback to linear interpolation
+    const slope = (p3.y - p0.y) / (p3.x - p0.x);
+    return p0.y + slope * (time - p0.x);
+  }
+
+  /**
+   * Returns a random float between min and max, inclusive.
+   * Should be a uniform distribution.
+   * 
+   * @param {number} min Minimum number, inclusive.
+   * @param {number} max Maximum number, also inclusive.
+   * @returns {number} A float number between min and max.
+   */
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /**
+   * Retrieves the value for a cookie key, value pair.
+   * 
+   * @param {string} key 
+   * @returns {string} Corresponding cookie value.
+   */
+  function getCookieValue(key) {
+    const value = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(key + "="))
+      ?.split("=")[1];
+    return value;
+  }
+
+  /**
+   * Creates a cookie key value pair with the provided
+   * data and an optional age parameter. Cookies are secure
+   * but have SameSite value of None.
+   * 
+   * @param {string} key The cookie key.
+   * @param {string} value The cookie value.
+   * @param {number} age Number of seconds until expiration, defaults to one year.
+   */
+  function setCookieValue(key, value, age) {
+    age = age || 31536000;
+    const cookie = `${key}=${value}; max-age=${age}; SameSite=None; path=/; Secure`;
+    document.cookie = cookie;
+  }
+
+  /**
    * Clears all existing magic star elements, then gives each
    * magic text element new magic stars. 
    * 
    * @param {number} numStarsPerText The number of stars for each magic text element. 
-   * @param {number} starAnimInterval The total animation duration from the first star appearing to the last.
+   * @param {number} starAnimInterval The total animation duration from the first star appearing to the last, given in milliseconds.
    */
   function initializeMagicStars(numStarsPerText, starAnimInterval) {
     const magicStars = document.querySelectorAll(".magic-star");
@@ -280,47 +443,6 @@
   }
 
   /**
-   * Returns a random float between min and max, inclusive.
-   * Should be a uniform distribution.
-   * 
-   * @param {number} min Minimum number, inclusive.
-   * @param {number} max Maximum number, also inclusive.
-   * @returns {number} A float number between min and max.
-   */
-  function randInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  /**
-   * Retrieves the value for a cookie key, value pair.
-   * 
-   * @param {string} key 
-   * @returns {string} Corresponding cookie value.
-   */
-  function getCookieValue(key) {
-    const value = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith(key + "="))
-      ?.split("=")[1];
-    return value;
-  }
-
-  /**
-   * Creates a cookie key value pair with the provided
-   * data and an optional age parameter. Cookies are secure
-   * but have SameSite value of None.
-   * 
-   * @param {string} key The cookie key.
-   * @param {string} value The cookie value.
-   * @param {number} age Number of seconds until expiration, defaults to one year.
-   */
-  function setCookieValue(key, value, age) {
-    age = age || 31536000;
-    const cookie = `${key}=${value}; max-age=${age}; SameSite=None; path=/; Secure`;
-    document.cookie = cookie;
-  }
-
-  /**
    * Retrieves the user's stored dark mode preference,
    * or uses system settings if there is none.
    */
@@ -341,10 +463,13 @@
    * Used to update darkMode styles after the darkMode global var has been set.
    */
   function updateDarkMode() {
+    const link = document.querySelector("link[rel~='icon']");
     if (darkMode) {
       document.body.classList.add("dark-mode");
+      link.href = "assets/dark_favicon.ico";
     } else {
       document.body.classList.remove("dark-mode");
+      link.href = "assets/favicon.ico";
     }
   }
 
@@ -355,127 +480,6 @@
     darkMode = !darkMode;
     setCookieValue("darkMode", darkMode);
     updateDarkMode();
-  }
-
-  /**
-   * A helper function for adding click event listeners to 
-   * elements, identified by id.
-   * 
-   * @param {string} id String id of the target element.
-   * @param {(evt: Event) => any} func The function that sound trigger on click.
-   */
-  function addButtonOnClick(id, func) {
-    document.getElementById(id).addEventListener("click", func);
-  }
-
-  /**
-   * Uses css class to visually simulate an onscreen calculator button being
-   * pressed. Timeout duration matches css, make sure to change both if modifiying! 
-   * 
-   * @param {HTMLElement} id The id of the target button. 
-   */
-  function doButtonPressVisual(id) {
-    const button = document.getElementById(id);
-    button.classList.add("pressed");
-    setTimeout(() => button.classList.remove("pressed"), 200);
-  }
-
-  /**
-   * Adds a click event listener to the operation button in the HTML and a keydown event
-   * listener for the operation key. If activated using keyboard, handles visual for onscreen button.
-   * 
-   * @param {HTMLElement} calculatorInput Reference to the calculator input.
-   * @param {string} buttonId The id of the button on the calculator.
-   * @param {string[]} operationKeys An array of string names for the corresponding keys on the keyboard.
-   * @param {(evt: Event) => any} operationCallback The calculator operation function to trigger.
-   */
-  function addCalculatorOperation(calculatorInput, buttonId, operationKeys, operationCallback) {
-    addButtonOnClick(buttonId, operationCallback);
-    calculatorInput.addEventListener("keydown", (event) => {
-      if (operationKeys.includes(event.key)) {
-        operationCallback(event);
-        doButtonPressVisual(buttonId);
-      }
-    });
-  }
-
-  function sizeTextFromLength(calculatorInput) {
-    const maxLengthNoShrink = 12; // May need to be adjusted if CSS styles are changed.
-
-    const maxFontSize = 36;
-    const maxLineHeight = 36;
-    const minFontSize = 18;
-    const minLineHeight = 58;
-
-    const bezierCurve = { x1: .25, y1: .8, x2: 1, y2: 1 };
-    const interpolationAmount = (calculatorInput.value.length - maxLengthNoShrink) / (maxInputLength - maxLengthNoShrink);
-    const interpolatedValue = 1 - cubicBezierInterpolation(interpolationAmount, bezierCurve);
-
-    calculatorInput.style.setProperty("--text-size", progressionInterpolate(interpolatedValue, minFontSize, maxFontSize) + "px");
-    calculatorInput.style.setProperty("--line-height", progressionInterpolate(interpolatedValue, minLineHeight, maxLineHeight) + "px");
-  }
-
-  /**
-   * @param {number} progress An interpolation amount between 0 and 1. 
-   * @param {number} minBound The lower bound for the interpolation output range. 
-   * @param {number} maxBound The upper bound for the interpolation output range.
-   */
-  function progressionInterpolate(progress, minBound, maxBound) {
-    return (maxBound - minBound) * progress + minBound;
-  }
-
-  /**
- * @typedef {Object} CubicBezier
- * @property {number} x1 Typically between 0 and 1 but can be outside that range.
- * @property {number} y1
- * @property {number} x2
- * @property {number} y2
- */
-  /**
-   * JavaScript version of cubic bezier interpolation, intended to mimic
-   * the CSS version. Uses 1e-6 precision.
-   * 
-   * @param {number} time The interpolation amount, must be between 0 and 1. 
-   * @param {CubicBezier} bezier An object describing the bezier curve.
-   * @returns {number} The output 'progress amount', may be outside 0 to 1 range based on the curve.
-   */
-  function cubicBezierInterpolation(time, bezier) {
-    // Ensure time is between 0 and 1
-    time = Math.max(0, Math.min(1, time));
-
-    // Extract bezier control points
-    const p0 = { x: 0, y: 0 };
-    const p1 = { x: bezier.x1, y: bezier.y1 };
-    const p2 = { x: bezier.x2, y: bezier.y2 };
-    const p3 = { x: 1, y: 1 };
-
-    // Calculate the coefficients for the cubic bezier equation
-    const cx = 3 * p1.x;
-    const bx = 3 * (p2.x - p1.x) - cx;
-    const ax = 1 - cx - bx;
-
-    const cy = 3 * p1.y;
-    const by = 3 * (p2.y - p1.y) - cy;
-    const ay = 1 - cy - by;
-
-    const epsilon = 1e-6; // Adjust this value to control precision
-    let t2 = time;
-    let x2, d2;
-    for (let i = 0; i < 8; i++) {
-      x2 = ((ax * t2 + bx) * t2 + cx) * t2 - time;
-      if (Math.abs(x2) < epsilon) {
-        return ((ay * t2 + by) * t2 + cy) * t2;
-      }
-      d2 = (3 * ax * t2 + 2 * bx) * t2 + cx;
-      if (Math.abs(d2) < epsilon) {
-        break;
-      }
-      t2 -= x2 / d2;
-    }
-
-    // Fallback to linear interpolation
-    const slope = (p3.y - p0.y) / (p3.x - p0.x);
-    return p0.y + slope * (time - p0.x);
   }
 
 })();
