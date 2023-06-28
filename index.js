@@ -56,7 +56,7 @@
     const numberButtons = document.querySelectorAll(".calculator-button.number");
     numberButtons.forEach(button => {
       button.addEventListener("click", () => {
-        if (calculatorInput.value < maxInputLength) {
+        if (calculatorInput.value.length < maxInputLength) {
           calculatorInput.value = calculatorInput.value + button.textContent.charAt(0);
           sizeTextFromLength(calculatorInput);
         }
@@ -69,7 +69,7 @@
       calculatorHistory.innerText = "";
       pendingOperation = null;
     };
-    addCalculatorOperation(calculatorInput, "clear-btn", "Escape", clearCalculator);
+    addCalculatorOperation(calculatorInput, "clear-btn", ["Escape"], clearCalculator);
 
     // TOGGLE SIGN
     addButtonOnClick("sign-btn", () => {
@@ -118,11 +118,11 @@
 
     for (let i = 0; i < operations.length; i++) {
       const handleOperation = createOperationCallback(operations[i].type, operations[i].visual);
-      addCalculatorOperation(calculatorInput, operations[i].button, operations[i].type, handleOperation);
+      addCalculatorOperation(calculatorInput, operations[i].button, [operations[i].type], handleOperation);
     }
 
     // COMPUTATION
-    addCalculatorOperation(calculatorInput, "equals-btn", "Enter", () => {
+    addCalculatorOperation(calculatorInput, "equals-btn", ["Enter", "="], () => {
       const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
       if (!result) return;
 
@@ -131,9 +131,13 @@
         calculatorInput.value = "";
         calculatorHistory.innerText = result.error;
       } else {
-      calculatorInput.value = result.inputResult;
-      calculatorHistory.innerText = result.displayHistory;
+        calculatorInput.value = result.inputResult;
+        calculatorHistory.innerText = result.displayHistory;
       }
+
+      calculatorInput.focus();
+      sizeTextFromLength(calculatorInput);
+      event.preventDefault(); // So it doesn't type the "=", which would cause our filter to kick in.
     });
   }
 
@@ -382,27 +386,17 @@
    * 
    * @param {HTMLElement} calculatorInput Reference to the calculator input.
    * @param {string} buttonId The id of the button on the calculator.
-   * @param {string} operationKey The string name for the corresponding key on the keyboard.
+   * @param {string[]} operationKeys An array of string names for the corresponding keys on the keyboard.
    * @param {(evt: Event) => any} operationCallback The calculator operation function to trigger.
    */
-  function addCalculatorOperation(calculatorInput, buttonId, operationKey, operationCallback) {
+  function addCalculatorOperation(calculatorInput, buttonId, operationKeys, operationCallback) {
     addButtonOnClick(buttonId, operationCallback);
     calculatorInput.addEventListener("keydown", (event) => {
-      if (event.key === operationKey) {
+      if (operationKeys.includes(event.key)) {
         operationCallback(event);
         doButtonPressVisual(buttonId);
       }
     });
-  }
-
-  function updateCalculatorValue(calculatorInput, calculatorHistory, newValue) {
-    if (!numberRegex.test(newValue)) {
-      calculatorInput.value = "";
-      calculatorHistory.innerText = "Can't divide by zero!";
-    } else {
-      calculatorInput.value = result.inputResult;
-      calculatorHistory.innerText = result.displayHistory;
-    }
   }
 
   function sizeTextFromLength(calculatorInput) {
