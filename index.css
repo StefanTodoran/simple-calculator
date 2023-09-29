@@ -1,6 +1,7 @@
 html {
   scroll-behavior: smooth;
-  --primary-color: #9381ff;
+  --primary-color-rgb: 147, 129, 255;
+  --primary-color: rgb(var(--primary-color-rgb));
   --secondary-color: #b8b8ff;
 
   --base-color-rgb: 217, 217, 217;
@@ -94,7 +95,8 @@ button {
   height: var(--size);
   border: 2px solid var(--secondary-color);
   border-radius: calc(var(--size) / 5);
-  transition: border 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  transition: border 0.25s ease, transform 0.25s ease, opacity 0.25s ease, background-color 0.25s ease;
 }
 
 .overlaping-util-buttons {
@@ -167,6 +169,37 @@ body.dark-mode #tiny-cloud {
   width: calc(var(--button-size) * 4); /* An example where the coming relative to parent size units would be more clean/clear. */
   transition: background-color 0.25s ease;
   height: 46px;
+}
+
+.error-shake {
+  animation: wobble 0.8s linear forwards;
+  transform-origin: 50% 100%;
+}
+
+@keyframes wobble {
+  0%, 100% {
+    transform: none;
+  }
+
+  15% {
+    transform: translateX(-3%);
+  }
+
+  30% {
+    transform: translateX(2.5%);
+  }
+
+  45% {
+    transform: translateX(-2%);
+  }
+
+  60% {
+    transform: translateX(1.5%);
+  }
+
+  75% {
+    transform: translateX(-1%);
+  }
 }
 
 #calculator-input {
@@ -383,7 +416,8 @@ body.dark-mode {
 
   --highlight-color: #9381ff;
   --light-highlight: #b8b8ff;
-  --primary-color: #fb6f92;
+  --primary-color-rgb: 251, 111, 146;
+  --primary-color: rgb(var(--primary-color-rgb));
   --secondary-color: #ffc2d1;
 }
 

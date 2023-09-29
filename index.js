@@ -75,7 +75,7 @@
     });
 
     // TOGGLE SIGN
-    addButtonOnClick("sign-btn", () => {
+    addCalculatorOperation("sign-btn", ["n", "N"], () => {
       if (calculatorInput.value.startsWith("-")) {
         calculatorInput.value = calculatorInput.value.slice(1);
       } else if (calculatorInput.value !== "") {
@@ -95,7 +95,11 @@
     function createOperationCallback(operationType, operationVisual) {
       operationVisual = operationVisual || operationType;
       return (event) => {
-        if (calculatorInput.value === "") return;
+        if (calculatorInput.value === "" && operationType === "-") return; // Special case, otherwise input of just "-" causes error shake  
+        if (calculatorInput.value === "" || calculatorInput.value === "-") {
+          doErrorShake();
+          return;
+        }
 
         if (pendingOperation) {
           const result = getComputationResult(pendingOperation, calculatorInput, calculatorHistory);
@@ -133,6 +137,7 @@
       if (result.error) {
         calculatorInput.value = "";
         calculatorHistory.innerText = result.error;
+        doErrorShake();
       } else {
         calculatorInput.value = result.inputResult;
         calculatorHistory.innerText = result.displayHistory;
@@ -281,6 +286,17 @@
 
     calculatorInput.style.setProperty("--text-size", progressionInterpolate(interpolatedValue, minFontSize, maxFontSize) + "px");
     calculatorInput.style.setProperty("--line-height", progressionInterpolate(interpolatedValue, minLineHeight, maxLineHeight) + "px");
+  }
+
+  let shaking = false;
+  function doErrorShake() {
+    if (shaking) return;
+
+    const errorClass = "error-shake";
+    const calculatorWrap = document.getElementById("input-wrap");
+
+    calculatorWrap.classList.add(errorClass);
+    setTimeout(() => { calculatorWrap.classList.remove(errorClass); }, 800);
   }
 
   /**
