@@ -54,7 +54,12 @@
     // longer valid number. In the event that doesn't happen our computation code has error handling. This 
     // also matches scientific notation numbers.
     const numberRegex = /^-?\d*(?:\.\d*)?(?:\d+[eE][+-]?\d+)?$/; // /^(?!-$)-?\d*\.?\d*$/;
-    createInputFilter(calculatorInput, (value) => { return numberRegex.test(value) });
+    const stripRegex = /[^0-9\-+e.]/g; // The second regex is used before the first, to strip characters that can never be in a valid input string.
+    createInputFilter(
+      calculatorInput,
+      (value) => { return value.replace(stripRegex, "") },
+      (value) => { return numberRegex.test(value) },
+    );
 
     // NUMBER INPUT
     const numberButtons = document.querySelectorAll(".calculator-button.number");
@@ -153,12 +158,14 @@
    * methods for input include typing, pasting and drag and drop.
    * 
    * @param {HTMLElement} targetInput The input to which the filter should apply.
+   * @param {(value: string) => string} inputCleaner A function which the input string but having removing all characters which should never appear in a valid input.
    * @param {(value: string) => boolean} inputFilter A function which returns true if the input is valid and false otherwise.
    */
-  function createInputFilter(targetInput, inputFilter) {
+  function createInputFilter(targetInput, inputCleaner, inputFilter) {
     const captureEvents = ["input", "keydown", "keyup", "mouseup", "select", "contextmenu", "drop"];
     captureEvents.forEach(eventType => {
       targetInput.addEventListener(eventType, function () {
+        this.value = inputCleaner(this.value);
         if (inputFilter(this.value)) {
           this.oldValue = this.value;
         } else if (this.hasOwnProperty("oldValue")) {
@@ -260,7 +267,7 @@
    * 
    * @param {string} buttonId The id of the button on the calculator.
    * @param {string[]} operationKeys An array of string names for the corresponding keys on the keyboard.
-   * @param {(evt: Event) => any} operationCallback The calculator operation function to trigger.
+   * @param {(evt: KeyboardEvent) => any} operationCallback The calculator operation function to trigger.
    */
   function addCalculatorOperation(buttonId, operationKeys, operationCallback) {
     addButtonOnClick(buttonId, operationCallback);
